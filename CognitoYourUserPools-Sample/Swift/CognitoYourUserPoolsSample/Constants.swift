@@ -18,9 +18,16 @@
 import Foundation
 import AWSCognitoIdentityProvider
 
-let CognitoIdentityUserPoolRegion: AWSRegionType = .Unknown
-let CognitoIdentityUserPoolId = "YOUR_USER_POOL_ID"
-let CognitoIdentityUserPoolAppClientId = "YOUR_APP_CLIENT_ID"
-let CognitoIdentityUserPoolAppClientSecret = "YOUR_APP_CLIENT_SECRET"
+let CognitoIdentityUserPoolRegion: AWSRegionType = AWSRegionType.USEast2
+let CognitoIdentityUserPoolId = "us-east-2_ykDz8Q4Qn"
 
+//1kpec is the custom-auth only
+let userPassAppClientId = "215ava6g2jg9on5dvapctaqocp"
+let customAuthOnlyAppClientId = "1kpec116bjij08jjdlv3rqp0h2"
+//let CognitoIdentityUserPoolAppClientId = userPassAppClientId
+let CognitoIdentityUserPoolAppClientId = customAuthOnlyAppClientId
+
+//let CognitoIdentityUserPoolAppClientSecret = "YOUR_APP_CLIENT_SECRET"
+
+//the identity pool id?
 let AWSCognitoUserPoolsSignInProviderKey = "UserPool"

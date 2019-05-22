@@ -21,7 +21,7 @@ import AWSCognitoIdentityProvider
 class SignInViewController: UIViewController {
     @IBOutlet weak var username: UITextField!
     @IBOutlet weak var password: UITextField!
-    var passwordAuthenticationCompletion: AWSTaskCompletionSource<AWSCognitoIdentityPasswordAuthenticationDetails>?
+    var customAuthenticationCompletion: AWSTaskCompletionSource<AWSCognitoIdentityCustomChallengeDetails>?
     var usernameText: String?
     
     override func viewWillAppear(_ animated: Bool) {
@@ -32,12 +32,15 @@ class SignInViewController: UIViewController {
     }
     
     @IBAction func signInPressed(_ sender: AnyObject) {
-        if (self.username.text != nil && self.password.text != nil) {
-            let authDetails = AWSCognitoIdentityPasswordAuthenticationDetails(username: self.username.text!, password: self.password.text! )
-            self.passwordAuthenticationCompletion?.set(result: authDetails)
+        if (self.username.text != nil ) {
+            //let cognitoUser = AWSCognitoIdentityUser.init(username: self.username.text, pool: AWSCognitoIdentityUserPool(forKey: AWSCognitoUserPoolsSignInProviderKey))
+
+            //let authDetails = AWSCognitoIdentityCustomChallengeDetails(challengeParameters: ["username": self.username.text!])
+            //self.customAuthenticationCompletion?.set(result: authDetails)
+            //cognitoUser.
         } else {
             let alertController = UIAlertController(title: "Missing information",
-                                                    message: "Please enter a valid user name and password",
+                                                    message: "Please enter a valid user name",
                                                     preferredStyle: .alert)
             let retryAction = UIAlertAction(title: "Retry", style: .default, handler: nil)
             alertController.addAction(retryAction)
@@ -45,16 +48,39 @@ class SignInViewController: UIViewController {
     }
 }
 
-extension SignInViewController: AWSCognitoIdentityPasswordAuthentication {
-    
-    public func getDetails(_ authenticationInput: AWSCognitoIdentityPasswordAuthenticationInput, passwordAuthenticationCompletionSource: AWSTaskCompletionSource<AWSCognitoIdentityPasswordAuthenticationDetails>) {
-        self.passwordAuthenticationCompletion = passwordAuthenticationCompletionSource
-        DispatchQueue.main.async {
-            if (self.usernameText == nil) {
-                self.usernameText = authenticationInput.lastKnownUsername
-            }
+extension SignInViewController: AWSCognitoIdentityCustomAuthentication {
+
+    func getCustomChallengeDetails(_ authenticationInput: AWSCognitoIdentityCustomAuthenticationInput, customAuthCompletionSource: AWSTaskCompletionSource<AWSCognitoIdentityCustomChallengeDetails>) {
+        self.customAuthenticationCompletion = customAuthCompletionSource
+        print(String(describing: authenticationInput.challengeParameters))
+        
+        if authenticationInput.challengeParameters.count == 0 {
+            print("in SigninViewController, no challengeParameters")
+            //self.verificationCode = "1234"
+            customAuthCompletionSource.set(result: AWSCognitoIdentityCustomChallengeDetails(challengeResponses: [
+                    "SRP_A": "1234",
+                    "CHALLENGE_NAME": "SRP_A"
+                ])
+            )
+        } else {
+            print("in SigninViewController, challengeParameters present")
+            //todo replace with value of text field
+            customAuthCompletionSource.set(result: AWSCognitoIdentityCustomChallengeDetails(challengeResponses: [
+                    "ANSWER" : "1234"
+                ])
+            )
         }
     }
+    
+    
+//    public func getDetails(_ authenticationInput: AWSCognitoIdentityPasswordAuthenticationInput, passwordAuthenticationCompletionSource: AWSTaskCompletionSource<AWSCognitoIdentityPasswordAuthenticationDetails>) {
+//        self.passwordAuthenticationCompletion = passwordAuthenticationCompletionSource
+//        DispatchQueue.main.async {
+//            if (self.usernameText == nil) {
+//                self.usernameText = authenticationInput.lastKnownUsername
+//            }
+//        }
+//    }
     
     public func didCompleteStepWithError(_ error: Error?) {
         DispatchQueue.main.async {

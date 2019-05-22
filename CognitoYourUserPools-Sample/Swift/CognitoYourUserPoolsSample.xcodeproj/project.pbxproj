@@ -23,6 +23,8 @@
 		17FC2FA31E25A5D000174015 /* ConfirmForgotPasswordViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17FC2FA21E25A5D000174015 /* ConfirmForgotPasswordViewController.swift */; };
 		17FC2FA51E25A77600174015 /* UserDetailTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17FC2FA41E25A77600174015 /* UserDetailTableViewController.swift */; };
 		17FC2FA71E25A9A200174015 /* DevicesDetailTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17FC2FA61E25A9A200174015 /* DevicesDetailTableViewController.swift */; };
+		964C91E0229587FD0080E7F2 /* PasswordlessViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 964C91DF229587FD0080E7F2 /* PasswordlessViewController.xib */; };
+		964C91E2229589150080E7F2 /* PasswordlessViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 964C91E1229589150080E7F2 /* PasswordlessViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -44,6 +46,8 @@
 		17FC2FA41E25A77600174015 /* UserDetailTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserDetailTableViewController.swift; sourceTree = "<group>"; };
 		17FC2FA61E25A9A200174015 /* DevicesDetailTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DevicesDetailTableViewController.swift; sourceTree = "<group>"; };
 		2D8C9B52DE415302BA7B152A /* Pods-CognitoYourUserPoolsSample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CognitoYourUserPoolsSample.release.xcconfig"; path = "Pods/Target Support Files/Pods-CognitoYourUserPoolsSample/Pods-CognitoYourUserPoolsSample.release.xcconfig"; sourceTree = "<group>"; };
+		964C91DF229587FD0080E7F2 /* PasswordlessViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PasswordlessViewController.xib; sourceTree = "<group>"; };
+		964C91E1229589150080E7F2 /* PasswordlessViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordlessViewController.swift; sourceTree = "<group>"; };
 		AB8F26771F0FF8105FC402DD /* Pods_CognitoYourUserPoolsSample.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_CognitoYourUserPoolsSample.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DBEB9BB4F88788184F7DD583 /* Pods-CognitoYourUserPoolsSample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CognitoYourUserPoolsSample.debug.xcconfig"; path = "Pods/Target Support Files/Pods-CognitoYourUserPoolsSample/Pods-CognitoYourUserPoolsSample.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -82,6 +86,7 @@
 			isa = PBXGroup;
 			children = (
 				17FC2F941E2590D800174015 /* MFAViewController.xib */,
+				964C91DF229587FD0080E7F2 /* PasswordlessViewController.xib */,
 				17FC2F7F1E258FC500174015 /* AppDelegate.swift */,
 				17FC2F831E258FC500174015 /* Main.storyboard */,
 				17FC2F861E258FC500174015 /* Assets.xcassets */,
@@ -97,6 +102,7 @@
 				17FC2FA21E25A5D000174015 /* ConfirmForgotPasswordViewController.swift */,
 				17FC2FA41E25A77600174015 /* UserDetailTableViewController.swift */,
 				17FC2FA61E25A9A200174015 /* DevicesDetailTableViewController.swift */,
+				964C91E1229589150080E7F2 /* PasswordlessViewController.swift */,
 			);
 			path = CognitoYourUserPoolsSample;
 			sourceTree = "<group>";
@@ -191,6 +197,7 @@
 				17FC2F871E258FC500174015 /* Assets.xcassets in Resources */,
 				17FC2F921E25908D00174015 /* CognitoLogo.png in Resources */,
 				17FC2F851E258FC500174015 /* Main.storyboard in Resources */,
+				964C91E0229587FD0080E7F2 /* PasswordlessViewController.xib in Resources */,
 				17FC2F951E2590D800174015 /* MFAViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -250,6 +257,7 @@
 				17FC2F9D1E259E5D00174015 /* SignUpViewController.swift in Sources */,
 				17FC2F9F1E259F3200174015 /* ConfirmSignUpViewController.swift in Sources */,
 				17FC2F9B1E259E0500174015 /* Constants.swift in Sources */,
+				964C91E2229589150080E7F2 /* PasswordlessViewController.swift in Sources */,
 				17FC2F991E25940900174015 /* SignInViewController.swift in Sources */,
 				17FC2F971E25928900174015 /* MFAViewController.swift in Sources */,
 				17FC2FA71E25A9A200174015 /* DevicesDetailTableViewController.swift in Sources */,
