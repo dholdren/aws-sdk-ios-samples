@@ -91,128 +91,62 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 // MARK:- AWSCognitoIdentityInteractiveAuthenticationDelegate protocol delegate
 
 extension AppDelegate: AWSCognitoIdentityInteractiveAuthenticationDelegate {
-//    func startPasswordAuthentication() -> AWSCognitoIdentityPasswordAuthentication {
-//        if (self.navigationController == nil) {
-//            self.navigationController = self.storyboard?.instantiateViewController(withIdentifier: "signinController") as? UINavigationController
-//        }
-//
-//        if (self.signInViewController == nil) {
-//            self.signInViewController = self.navigationController?.viewControllers[0] as? SignInViewController
-//        }
-//
-//        DispatchQueue.main.async {
-//            self.navigationController!.popToRootViewController(animated: true)
-//            if (!self.navigationController!.isViewLoaded
-//                    || self.navigationController!.view.window == nil) {
-//                self.window?.rootViewController?.present(self.navigationController!,
-//                        animated: true,
-//                        completion: nil)
-//            }
-//
-//        }
-//        return self.signInViewController!
-//    }
 
     func startCustomAuthentication() -> AWSCognitoIdentityCustomAuthentication {
-        if (self.navigationController == nil) {
-            self.navigationController = self.storyboard?.instantiateViewController(withIdentifier: "signinController") as? UINavigationController
-        }
-
-        if (self.signInViewController == nil) {
-            self.signInViewController = self.navigationController?.viewControllers[0] as? SignInViewController
-        }
-
-        DispatchQueue.main.async {
-            self.navigationController!.popToRootViewController(animated: true)
-            if (!self.navigationController!.isViewLoaded
-                || self.navigationController!.view.window == nil) {
-                self.window?.rootViewController?.present(self.navigationController!,
-                                                         animated: true,
-                                                         completion: nil)
+        let pool = AWSCognitoIdentityUserPool(forKey: AWSCognitoUserPoolsSignInProviderKey)
+        if (pool.currentUser()?.username == nil) {
+            if (self.navigationController == nil) {
+                self.navigationController = self.storyboard?.instantiateViewController(withIdentifier: "signinController") as? UINavigationController
             }
 
-        }
-        return self.signInViewController!
+            if (self.signInViewController == nil) {
+                self.signInViewController = self.navigationController?.viewControllers[0] as? SignInViewController
+            }
 
-//        if (self.passwordlessViewController == nil) {
-//            self.passwordlessViewController = PasswordlessViewController()
-//            self.passwordlessViewController?.modalPresentationStyle = .popover
-//        }
-//        DispatchQueue.main.async {
-//            if (!self.passwordlessViewController!.isViewLoaded
-//                || self.passwordlessViewController!.view.window == nil) {
-//                //display passwordless as popover on current view controller
-//                let viewController = self.window?.rootViewController!
-//                viewController?.present(self.passwordlessViewController!,
-//                                        animated: true,
-//                                        completion: nil)
-//
-//                // configure popover vc
-//                let presentationController = self.passwordlessViewController!.popoverPresentationController
-//                presentationController?.permittedArrowDirections = UIPopoverArrowDirection.left
-//                presentationController?.sourceView = viewController!.view
-//                presentationController?.sourceRect = viewController!.view.bounds
-//            }
-//        }
-//        return self.passwordlessViewController!
+            DispatchQueue.main.async {
+                self.navigationController!.popToRootViewController(animated: true)
+                if (!self.navigationController!.isViewLoaded
+                    || self.navigationController!.view.window == nil) {
+                    self.window?.rootViewController?.present(self.navigationController!,
+                                                             animated: true,
+                                                             completion: nil)
+                }
+
+            }
+            return self.signInViewController!
+        } else {
+            if (self.passwordlessViewController == nil) {
+                self.passwordlessViewController = PasswordlessViewController()
+                self.passwordlessViewController?.modalPresentationStyle = .popover
+            }
+            DispatchQueue.main.async {
+                if (!self.passwordlessViewController!.isViewLoaded
+                    || self.passwordlessViewController!.view.window == nil) {
+                    //display passwordless as popover on current view controller
+                    let viewController = self.window?.rootViewController!
+                    viewController?.present(self.passwordlessViewController!,
+                                            animated: true,
+                                            completion: nil)
+
+                    // configure popover vc
+                    let presentationController = self.passwordlessViewController!.popoverPresentationController
+                    presentationController?.permittedArrowDirections = UIPopoverArrowDirection.left
+                    presentationController?.sourceView = viewController!.view
+                    presentationController?.sourceRect = viewController!.view.bounds
+                }
+            }
+            return self.passwordlessViewController!
+        }
     }
     
 
-//
-//    func startMultiFactorAuthentication() -> AWSCognitoIdentityMultiFactorAuthentication {
-//        if (self.mfaViewController == nil) {
-//            self.mfaViewController = MFAViewController()
-//            self.mfaViewController?.modalPresentationStyle = .popover
-//        }
-//        DispatchQueue.main.async {
-//            if (!self.mfaViewController!.isViewLoaded
-//                || self.mfaViewController!.view.window == nil) {
-//                //display mfa as popover on current view controller
-//                let viewController = self.window?.rootViewController!
-//                viewController?.present(self.mfaViewController!,
-//                                        animated: true,
-//                                        completion: nil)
-//
-//                // configure popover vc
-//                let presentationController = self.mfaViewController!.popoverPresentationController
-//                presentationController?.permittedArrowDirections = UIPopoverArrowDirection.left
-//                presentationController?.sourceView = viewController!.view
-//                presentationController?.sourceRect = viewController!.view.bounds
-//            }
-//        }
-//        return self.mfaViewController!
-//    }
     
 //    func startRememberDevice() -> AWSCognitoIdentityRememberDevice {
 //        return self
 //    }
 }
 
-// MARK:- AWSCognitoIdentityRememberDevice protocol delegate
 
-//extension AppDelegate: AWSCognitoIdentityRememberDevice {
-//
-//    func getRememberDevice(_ rememberDeviceCompletionSource: AWSTaskCompletionSource<NSNumber>) {
-//        self.rememberDeviceCompletionSource = rememberDeviceCompletionSource
-//        DispatchQueue.main.async {
-//            // dismiss the view controller being present before asking to remember device
-//            self.window?.rootViewController!.presentedViewController?.dismiss(animated: true, completion: nil)
-//            let alertController = UIAlertController(title: "Remember Device",
-//                                                    message: "Do you want to remember this device?.",
-//                                                    preferredStyle: .actionSheet)
-//
-//            let yesAction = UIAlertAction(title: "Yes", style: .default, handler: { (action) in
-//                self.rememberDeviceCompletionSource?.set(result: true)
-//            })
-//            let noAction = UIAlertAction(title: "No", style: .default, handler: { (action) in
-//                self.rememberDeviceCompletionSource?.set(result: false)
-//            })
-//            alertController.addAction(yesAction)
-//            alertController.addAction(noAction)
-//
-//            self.window?.rootViewController?.present(alertController, animated: true, completion: nil)
-//        }
-//    }
 //
 //    func didCompleteStepWithError(_ error: Error?) {
 //        DispatchQueue.main.async {

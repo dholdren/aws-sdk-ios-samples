@@ -33,11 +33,13 @@ class SignInViewController: UIViewController {
     
     @IBAction func signInPressed(_ sender: AnyObject) {
         if (self.username.text != nil ) {
-            //let cognitoUser = AWSCognitoIdentityUser.init(username: self.username.text, pool: AWSCognitoIdentityUserPool(forKey: AWSCognitoUserPoolsSignInProviderKey))
+            self.usernameText = self.username.text
+            let pool = AWSCognitoIdentityUserPool(forKey: AWSCognitoUserPoolsSignInProviderKey)
 
-            //let authDetails = AWSCognitoIdentityCustomChallengeDetails(challengeParameters: ["username": self.username.text!])
-            //self.customAuthenticationCompletion?.set(result: authDetails)
-            //cognitoUser.
+
+            let user = pool.getUser(self.usernameText!)
+            user.updateUsernameAndPersistTokens
+            user.getSession()
         } else {
             let alertController = UIAlertController(title: "Missing information",
                                                     message: "Please enter a valid user name",
@@ -49,38 +51,27 @@ class SignInViewController: UIViewController {
 }
 
 extension SignInViewController: AWSCognitoIdentityCustomAuthentication {
+    
 
     func getCustomChallengeDetails(_ authenticationInput: AWSCognitoIdentityCustomAuthenticationInput, customAuthCompletionSource: AWSTaskCompletionSource<AWSCognitoIdentityCustomChallengeDetails>) {
-        self.customAuthenticationCompletion = customAuthCompletionSource
-        print(String(describing: authenticationInput.challengeParameters))
-        
-        if authenticationInput.challengeParameters.count == 0 {
-            print("in SigninViewController, no challengeParameters")
-            //self.verificationCode = "1234"
-            customAuthCompletionSource.set(result: AWSCognitoIdentityCustomChallengeDetails(challengeResponses: [
-                    "SRP_A": "1234",
-                    "CHALLENGE_NAME": "SRP_A"
-                ])
-            )
-        } else {
-            print("in SigninViewController, challengeParameters present")
-            //todo replace with value of text field
-            customAuthCompletionSource.set(result: AWSCognitoIdentityCustomChallengeDetails(challengeResponses: [
-                    "ANSWER" : "1234"
-                ])
-            )
-        }
+
+        //DispatchQueue.main.async {
+            self.customAuthenticationCompletion = customAuthCompletionSource
+
+            if authenticationInput.challengeParameters.count > 0 {
+                DispatchQueue.main.async {
+
+                    if let username = self.username.text {
+                        let details = AWSCognitoIdentityCustomChallengeDetails(
+                                challengeResponses: ["USERNAME" : username])
+                        details.initialChallengeName = "CUSTOM_CHALLENGE"
+
+                        customAuthCompletionSource.set(result: details)
+                    }
+                }
+            }
+        //}
     }
-    
-    
-//    public func getDetails(_ authenticationInput: AWSCognitoIdentityPasswordAuthenticationInput, passwordAuthenticationCompletionSource: AWSTaskCompletionSource<AWSCognitoIdentityPasswordAuthenticationDetails>) {
-//        self.passwordAuthenticationCompletion = passwordAuthenticationCompletionSource
-//        DispatchQueue.main.async {
-//            if (self.usernameText == nil) {
-//                self.usernameText = authenticationInput.lastKnownUsername
-//            }
-//        }
-//    }
     
     public func didCompleteStepWithError(_ error: Error?) {
         DispatchQueue.main.async {
@@ -95,6 +86,7 @@ extension SignInViewController: AWSCognitoIdentityCustomAuthentication {
             } else {
                 self.username.text = nil
                 self.dismiss(animated: true, completion: nil)
+                //show code view?
             }
         }
     }

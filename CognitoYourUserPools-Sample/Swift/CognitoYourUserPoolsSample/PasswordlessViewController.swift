@@ -14,7 +14,7 @@ class PasswordlessViewController: UIViewController {
     
     var destination: String?
     var customAuthenticationCompletionSource: AWSTaskCompletionSource<AWSCognitoIdentityCustomChallengeDetails>?
-    var code: String?
+    var user: AWSCognitoIdentityUser?
     
     @IBOutlet weak var sentTo: UILabel!
     @IBOutlet weak var confirmationCode: UITextField!
@@ -42,9 +42,11 @@ class PasswordlessViewController: UIViewController {
             self.present(alertController, animated: true, completion:  nil)
             return
         }
-        //let challengeDetails = AWSCognitoIdentityCustomChallengeDetails(challengeResponses:)
-        //self.customAuthenticationCompletionSource?.set(result: authenticationCodeValue as NSString)
-        self.code = authenticationCodeValue
+
+        self.customAuthenticationCompletionSource?.set(result: AWSCognitoIdentityCustomChallengeDetails(challengeResponses: [
+            "ANSWER" : (self.confirmationCode?.text!)!,
+            "USERNAME" : (self.user?.username)!
+        ]))
     }
     
 }
@@ -55,14 +57,11 @@ extension PasswordlessViewController : AWSCognitoIdentityCustomAuthentication {
         self.customAuthenticationCompletionSource = customAuthCompletionSource
         print(String(describing: authenticationInput.challengeParameters))
 
-        if authenticationInput.challengeParameters.count == 0 {
-            print("in PasswordlessViewController, error no challengeParameters")
-
-        } else if let code = self.code {
+        if let code = self.confirmationCode?.text {
             print("in PasswordlessViewController, challengeParameters present")
-            //todo replace with value of text field
             customAuthCompletionSource.set(result: AWSCognitoIdentityCustomChallengeDetails(challengeResponses: [
-                "ANSWER" : code
+                "ANSWER" : code,
+                "USERNAME" : (self.user?.username)!
             ])
             )
         } else {
