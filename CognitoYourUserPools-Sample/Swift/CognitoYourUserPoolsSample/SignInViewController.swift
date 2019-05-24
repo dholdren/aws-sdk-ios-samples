@@ -33,13 +33,15 @@ class SignInViewController: UIViewController {
     
     @IBAction func signInPressed(_ sender: AnyObject) {
         if (self.username.text != nil ) {
-            self.usernameText = self.username.text
-            let pool = AWSCognitoIdentityUserPool(forKey: AWSCognitoUserPoolsSignInProviderKey)
-
-
-            let user = pool.getUser(self.usernameText!)
-            user.updateUsernameAndPersistTokens
-            user.getSession()
+            //self.usernameText = self.username.text
+//            let pool = AWSCognitoIdentityUserPool(forKey: AWSCognitoUserPoolsSignInProviderKey)
+//
+//
+//            let user = pool.getUser(self.usernameText!)
+//            user.updateUsernameAndPersistTokens
+//            user.getSession()
+            let details = AWSCognitoIdentityCustomChallengeDetails.init(challengeResponses: ["USERNAME" : self.username.text!])
+            self.customAuthenticationCompletion?.set(result: details)
         } else {
             let alertController = UIAlertController(title: "Missing information",
                                                     message: "Please enter a valid user name",
@@ -52,25 +54,19 @@ class SignInViewController: UIViewController {
 
 extension SignInViewController: AWSCognitoIdentityCustomAuthentication {
     
-
+    
     func getCustomChallengeDetails(_ authenticationInput: AWSCognitoIdentityCustomAuthenticationInput, customAuthCompletionSource: AWSTaskCompletionSource<AWSCognitoIdentityCustomChallengeDetails>) {
-
-        //DispatchQueue.main.async {
-            self.customAuthenticationCompletion = customAuthCompletionSource
-
-            if authenticationInput.challengeParameters.count > 0 {
-                DispatchQueue.main.async {
-
-                    if let username = self.username.text {
-                        let details = AWSCognitoIdentityCustomChallengeDetails(
-                                challengeResponses: ["USERNAME" : username])
-                        details.initialChallengeName = "CUSTOM_CHALLENGE"
-
-                        customAuthCompletionSource.set(result: details)
-                    }
-                }
-            }
-        //}
+        self.customAuthenticationCompletion = customAuthCompletionSource
+        
+        //this is the re-entry after clickin sign-in
+        if (authenticationInput.challengeParameters.count > 0) {
+            print("challengeParameters present")
+            print(authenticationInput.challengeParameters)
+            //show the code view?
+            //set customAuthenticationCompletion on it
+            //in the "confirm code" handler create details with the code and call:
+            //self.customAuthenticationCompletion?.set(result: details)
+        }
     }
     
     public func didCompleteStepWithError(_ error: Error?) {
@@ -86,7 +82,6 @@ extension SignInViewController: AWSCognitoIdentityCustomAuthentication {
             } else {
                 self.username.text = nil
                 self.dismiss(animated: true, completion: nil)
-                //show code view?
             }
         }
     }

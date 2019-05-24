@@ -93,8 +93,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 extension AppDelegate: AWSCognitoIdentityInteractiveAuthenticationDelegate {
 
     func startCustomAuthentication() -> AWSCognitoIdentityCustomAuthentication {
-        let pool = AWSCognitoIdentityUserPool(forKey: AWSCognitoUserPoolsSignInProviderKey)
-        if (pool.currentUser()?.username == nil) {
+//        let pool = AWSCognitoIdentityUserPool(forKey: AWSCognitoUserPoolsSignInProviderKey)
+//        if (pool.currentUser()?.username == nil) {
             if (self.navigationController == nil) {
                 self.navigationController = self.storyboard?.instantiateViewController(withIdentifier: "signinController") as? UINavigationController
             }
@@ -114,29 +114,29 @@ extension AppDelegate: AWSCognitoIdentityInteractiveAuthenticationDelegate {
 
             }
             return self.signInViewController!
-        } else {
-            if (self.passwordlessViewController == nil) {
-                self.passwordlessViewController = PasswordlessViewController()
-                self.passwordlessViewController?.modalPresentationStyle = .popover
-            }
-            DispatchQueue.main.async {
-                if (!self.passwordlessViewController!.isViewLoaded
-                    || self.passwordlessViewController!.view.window == nil) {
-                    //display passwordless as popover on current view controller
-                    let viewController = self.window?.rootViewController!
-                    viewController?.present(self.passwordlessViewController!,
-                                            animated: true,
-                                            completion: nil)
-
-                    // configure popover vc
-                    let presentationController = self.passwordlessViewController!.popoverPresentationController
-                    presentationController?.permittedArrowDirections = UIPopoverArrowDirection.left
-                    presentationController?.sourceView = viewController!.view
-                    presentationController?.sourceRect = viewController!.view.bounds
-                }
-            }
-            return self.passwordlessViewController!
-        }
+//        } else {
+//            if (self.passwordlessViewController == nil) {
+//                self.passwordlessViewController = PasswordlessViewController()
+//                self.passwordlessViewController?.modalPresentationStyle = .popover
+//            }
+//            DispatchQueue.main.async {
+//                if (!self.passwordlessViewController!.isViewLoaded
+//                    || self.passwordlessViewController!.view.window == nil) {
+//                    //display passwordless as popover on current view controller
+//                    let viewController = self.window?.rootViewController!
+//                    viewController?.present(self.passwordlessViewController!,
+//                                            animated: true,
+//                                            completion: nil)
+//
+//                    // configure popover vc
+//                    let presentationController = self.passwordlessViewController!.popoverPresentationController
+//                    presentationController?.permittedArrowDirections = UIPopoverArrowDirection.left
+//                    presentationController?.sourceView = viewController!.view
+//                    presentationController?.sourceRect = viewController!.view.bounds
+//                }
+//            }
+//            return self.passwordlessViewController!
+//        }
     }
     
 
