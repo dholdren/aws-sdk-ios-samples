@@ -23,6 +23,7 @@ class SignInViewController: UIViewController {
     @IBOutlet weak var password: UITextField!
     var customAuthenticationCompletion: AWSTaskCompletionSource<AWSCognitoIdentityCustomChallengeDetails>?
     var usernameText: String?
+    var passwordlessViewController : PasswordlessViewController?
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -33,13 +34,6 @@ class SignInViewController: UIViewController {
     
     @IBAction func signInPressed(_ sender: AnyObject) {
         if (self.username.text != nil ) {
-            //self.usernameText = self.username.text
-//            let pool = AWSCognitoIdentityUserPool(forKey: AWSCognitoUserPoolsSignInProviderKey)
-//
-//
-//            let user = pool.getUser(self.usernameText!)
-//            user.updateUsernameAndPersistTokens
-//            user.getSession()
             let details = AWSCognitoIdentityCustomChallengeDetails.init(challengeResponses: ["USERNAME" : self.username.text!])
             self.customAuthenticationCompletion?.set(result: details)
         } else {
@@ -62,10 +56,33 @@ extension SignInViewController: AWSCognitoIdentityCustomAuthentication {
         if (authenticationInput.challengeParameters.count > 0) {
             print("challengeParameters present")
             print(authenticationInput.challengeParameters)
-            //show the code view?
-            //set customAuthenticationCompletion on it
-            //in the "confirm code" handler create details with the code and call:
-            //self.customAuthenticationCompletion?.set(result: details)
+            
+            if (self.passwordlessViewController == nil) {
+                self.passwordlessViewController = PasswordlessViewController()
+            }
+            self.passwordlessViewController!.modalPresentationStyle = .popover
+            self.passwordlessViewController!.customAuthenticationCompletion = customAuthCompletionSource
+            self.passwordlessViewController!.destination = authenticationInput.challengeParameters["email"]
+            self.passwordlessViewController!.username = authenticationInput.challengeParameters["USERNAME"]
+            
+            //so we can dismiss both
+            self.passwordlessViewController?.signinViewController = self
+            
+            DispatchQueue.main.async {
+                if (!self.passwordlessViewController!.isViewLoaded
+                    || self.passwordlessViewController!.view.window == nil) {
+                    //display passwordless as popover on current view controller
+                    self.present(self.passwordlessViewController!,
+                                            animated: true,
+                                            completion: nil)
+                    
+                    // configure popover vc
+                    let presentationController = self.passwordlessViewController!.popoverPresentationController
+                    presentationController?.permittedArrowDirections = UIPopoverArrowDirection.left
+                    presentationController?.sourceView = self.view
+                    presentationController?.sourceRect = self.view.bounds
+                }
+            }
         }
     }
     
@@ -79,9 +96,6 @@ extension SignInViewController: AWSCognitoIdentityCustomAuthentication {
                 alertController.addAction(retryAction)
                 
                 self.present(alertController, animated: true, completion:  nil)
-            } else {
-                self.username.text = nil
-                self.dismiss(animated: true, completion: nil)
             }
         }
     }

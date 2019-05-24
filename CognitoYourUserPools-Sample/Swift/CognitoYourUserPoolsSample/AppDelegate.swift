@@ -93,74 +93,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 extension AppDelegate: AWSCognitoIdentityInteractiveAuthenticationDelegate {
 
     func startCustomAuthentication() -> AWSCognitoIdentityCustomAuthentication {
-//        let pool = AWSCognitoIdentityUserPool(forKey: AWSCognitoUserPoolsSignInProviderKey)
-//        if (pool.currentUser()?.username == nil) {
-            if (self.navigationController == nil) {
-                self.navigationController = self.storyboard?.instantiateViewController(withIdentifier: "signinController") as? UINavigationController
+        if (self.navigationController == nil) {
+            self.navigationController = self.storyboard?.instantiateViewController(withIdentifier: "signinController") as? UINavigationController
+        }
+
+        if (self.signInViewController == nil) {
+            self.signInViewController = self.navigationController?.viewControllers[0] as? SignInViewController
+        }
+
+        DispatchQueue.main.async {
+            self.navigationController!.popToRootViewController(animated: true)
+            if (!self.navigationController!.isViewLoaded
+                || self.navigationController!.view.window == nil) {
+                self.window?.rootViewController?.present(self.navigationController!,
+                                                         animated: true,
+                                                         completion: nil)
             }
 
-            if (self.signInViewController == nil) {
-                self.signInViewController = self.navigationController?.viewControllers[0] as? SignInViewController
-            }
-
-            DispatchQueue.main.async {
-                self.navigationController!.popToRootViewController(animated: true)
-                if (!self.navigationController!.isViewLoaded
-                    || self.navigationController!.view.window == nil) {
-                    self.window?.rootViewController?.present(self.navigationController!,
-                                                             animated: true,
-                                                             completion: nil)
-                }
-
-            }
-            return self.signInViewController!
-//        } else {
-//            if (self.passwordlessViewController == nil) {
-//                self.passwordlessViewController = PasswordlessViewController()
-//                self.passwordlessViewController?.modalPresentationStyle = .popover
-//            }
-//            DispatchQueue.main.async {
-//                if (!self.passwordlessViewController!.isViewLoaded
-//                    || self.passwordlessViewController!.view.window == nil) {
-//                    //display passwordless as popover on current view controller
-//                    let viewController = self.window?.rootViewController!
-//                    viewController?.present(self.passwordlessViewController!,
-//                                            animated: true,
-//                                            completion: nil)
-//
-//                    // configure popover vc
-//                    let presentationController = self.passwordlessViewController!.popoverPresentationController
-//                    presentationController?.permittedArrowDirections = UIPopoverArrowDirection.left
-//                    presentationController?.sourceView = viewController!.view
-//                    presentationController?.sourceRect = viewController!.view.bounds
-//                }
-//            }
-//            return self.passwordlessViewController!
-//        }
+        }
+        return self.signInViewController!
     }
     
-
-    
-//    func startRememberDevice() -> AWSCognitoIdentityRememberDevice {
-//        return self
-//    }
 }
-
-
-//
-//    func didCompleteStepWithError(_ error: Error?) {
-//        DispatchQueue.main.async {
-//            if let error = error as NSError? {
-//                let alertController = UIAlertController(title: error.userInfo["__type"] as? String,
-//                                                        message: error.userInfo["message"] as? String,
-//                                                        preferredStyle: .alert)
-//                let okAction = UIAlertAction(title: "ok", style: .default, handler: nil)
-//                alertController.addAction(okAction)
-//                DispatchQueue.main.async {
-//                    self.window?.rootViewController?.present(alertController, animated: true, completion: nil)
-//                }
-//            }
-//        }
-//    }
-//}
-

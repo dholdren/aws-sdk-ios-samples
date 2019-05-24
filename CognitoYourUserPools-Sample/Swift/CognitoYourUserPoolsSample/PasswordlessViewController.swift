@@ -13,8 +13,10 @@ import AWSCognitoIdentityProvider
 class PasswordlessViewController: UIViewController {
     
     var destination: String?
-    var customAuthenticationCompletionSource: AWSTaskCompletionSource<AWSCognitoIdentityCustomChallengeDetails>?
+    var customAuthenticationCompletion: AWSTaskCompletionSource<AWSCognitoIdentityCustomChallengeDetails>?
     var user: AWSCognitoIdentityUser?
+    var username: String?
+    var signinViewController: UIViewController?
     
     @IBOutlet weak var sentTo: UILabel!
     @IBOutlet weak var confirmationCode: UITextField!
@@ -43,52 +45,14 @@ class PasswordlessViewController: UIViewController {
             return
         }
 
-        self.customAuthenticationCompletionSource?.set(result: AWSCognitoIdentityCustomChallengeDetails(challengeResponses: [
+        self.customAuthenticationCompletion?.set(result: AWSCognitoIdentityCustomChallengeDetails(challengeResponses: [
             "ANSWER" : (self.confirmationCode?.text!)!,
-            "USERNAME" : (self.user?.username)!
+            "USERNAME" : self.username!
         ]))
-    }
-    
-}
-
-extension PasswordlessViewController : AWSCognitoIdentityCustomAuthentication {
-
-    func getCustomChallengeDetails(_ authenticationInput: AWSCognitoIdentityCustomAuthenticationInput, customAuthCompletionSource: AWSTaskCompletionSource<AWSCognitoIdentityCustomChallengeDetails>) {
-        self.customAuthenticationCompletionSource = customAuthCompletionSource
-        print(String(describing: authenticationInput.challengeParameters))
-
-        if let code = self.confirmationCode?.text {
-            print("in PasswordlessViewController, challengeParameters present")
-            customAuthCompletionSource.set(result: AWSCognitoIdentityCustomChallengeDetails(challengeResponses: [
-                "ANSWER" : code,
-                "USERNAME" : (self.user?.username)!
-            ])
-            )
-        } else {
-            print("code missing")
+        DispatchQueue.main.async {
+            self.dismiss(animated: true, completion: nil)
+            self.signinViewController?.dismiss(animated: true, completion: nil)
         }
     }
-    
-    func didCompleteStepWithError(_ error: Error?) {
-        DispatchQueue.main.async(execute: {
-            if let error = error as NSError? {
-                
-                let alertController = UIAlertController(title: error.userInfo["__type"] as? String,
-                                                        message: error.userInfo["message"] as? String,
-                                                        preferredStyle: .alert)
-                let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
-                alertController.addAction(okAction)
-                
-                self.present(alertController, animated: true, completion:  nil)
-            } else {
-                self.dismiss(animated: true, completion: nil)
-            }
-        })
-    }
-    
-//    func getCode(_ authenticationInput: AWSCognitoIdentityMultifactorAuthenticationInput, mfaCodeCompletionSource: AWSTaskCompletionSource<NSString>) {
-//        self.mfaCodeCompletionSource = mfaCodeCompletionSource
-//        self.destination = authenticationInput.destination
-//    }
     
 }
