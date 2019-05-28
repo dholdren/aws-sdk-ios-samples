@@ -64,6 +64,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
     
+    //com.CognitoTest://magic/<token>
+    func application(_ app: UIApplication, open url: URL,
+                     options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+        if let scheme = url.scheme,
+            scheme.localizedCaseInsensitiveCompare("com.CognitoTest") == .orderedSame,
+            let view = url.host {
+            let token = String(url.path.dropFirst()) //remove leading slash
+            print("view " + view)
+            print("token " + token)
+            if view == "magic" {
+                self.signInViewController?.passwordlessViewController?.performSetConfirmationCode(code: token)
+            }
+        }
+        return true
+    }
+    
     func applicationWillResignActive(_ application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
         // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.

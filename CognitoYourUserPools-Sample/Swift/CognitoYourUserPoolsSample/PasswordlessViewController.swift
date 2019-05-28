@@ -45,10 +45,14 @@ class PasswordlessViewController: UIViewController {
             return
         }
 
+        performSetConfirmationCode(code: self.confirmationCode!.text!)
+    }
+    
+    func performSetConfirmationCode(code: String){
         self.customAuthenticationCompletion?.set(result: AWSCognitoIdentityCustomChallengeDetails(challengeResponses: [
-            "ANSWER" : (self.confirmationCode?.text!)!,
+            "ANSWER" : code,
             "USERNAME" : self.username!
-        ]))
+            ]))
         DispatchQueue.main.async {
             self.dismiss(animated: true, completion: nil)
             self.signinViewController?.dismiss(animated: true, completion: nil)
