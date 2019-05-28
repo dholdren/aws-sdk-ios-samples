@@ -18,7 +18,7 @@
 import Foundation
 import AWSCognitoIdentityProvider
 
-class SignInViewController: UIViewController {
+class SignInViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var username: UITextField!
     @IBOutlet weak var password: UITextField!
     var customAuthenticationCompletion: AWSTaskCompletionSource<AWSCognitoIdentityCustomChallengeDetails>?
@@ -27,9 +27,17 @@ class SignInViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        //so we can hide keyboard
+        self.username.delegate = self
+        self.password.delegate = self
+        
         self.password.text = nil
         self.username.text = usernameText
         self.navigationController?.setNavigationBarHidden(true, animated: false)
+    }
+    //hide keyboard when we touch outside of the keyboard
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        self.view.endEditing(true)
     }
     
     @IBAction func signInPressed(_ sender: AnyObject) {
