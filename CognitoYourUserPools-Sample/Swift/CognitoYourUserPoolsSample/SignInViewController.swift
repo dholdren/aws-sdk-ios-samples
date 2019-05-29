@@ -42,8 +42,17 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
     
     @IBAction func signInPressed(_ sender: AnyObject) {
         if (self.username.text != nil ) {
-            let details = AWSCognitoIdentityCustomChallengeDetails.init(challengeResponses: ["USERNAME" : self.username.text!])
-            self.customAuthenticationCompletion?.set(result: details)
+            //if you ever logged in, the username sticks around in persistent storage after you signed-out
+            //this is useful for potentially pre-populating the text field, but breaks log-in since the SDK uses this value
+            AWSCognitoIdentityUserPool(forKey: AWSCognitoUserPoolsSignInProviderKey).clearLastKnownUser()
+            self.usernameText = self.username.text
+            
+            //first attempt signup, then signin
+            attemptSignup(self.usernameText!) { () in
+                
+                let details = AWSCognitoIdentityCustomChallengeDetails.init(challengeResponses: ["USERNAME" : self.usernameText!])
+                self.customAuthenticationCompletion?.set(result: details)
+            }
         } else {
             let alertController = UIAlertController(title: "Missing information",
                                                     message: "Please enter a valid user name",
@@ -64,6 +73,34 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         }
     }
 
+    func attemptSignup(_ userNameValue: String, completion: @escaping () -> (Void)) {
+        var attributes = [AWSCognitoIdentityUserAttributeType]()
+        
+        let email = AWSCognitoIdentityUserAttributeType()
+        email?.name = "email"
+        email?.value = userNameValue
+        attributes.append(email!)
+        
+        let passwordValue = randomString(30)
+        let pool = AWSCognitoIdentityUserPool(forKey: AWSCognitoUserPoolsSignInProviderKey)
+        pool.signUp(userNameValue, password: passwordValue, userAttributes: attributes, validationData: nil).continueWith { (task) -> Any? in
+            if let error = task.error as NSError? {
+                //assume the error is that the user exists, ignore
+                print(error)
+            } else if let result = task.result  {
+                print(result)
+            }
+//            if (completion != nil) {
+                completion()
+//            }
+            return nil
+        }
+    }
+    
+    func randomString(_ length: Int) -> String {
+        let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        return String((0..<length).map{ _ in letters.randomElement()! })
+    }
 }
 
 extension SignInViewController: AWSCognitoIdentityCustomAuthentication {
