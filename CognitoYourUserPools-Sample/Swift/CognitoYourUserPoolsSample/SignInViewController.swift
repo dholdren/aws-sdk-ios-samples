@@ -20,7 +20,7 @@ import AWSCognitoIdentityProvider
 
 class SignInViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var username: UITextField!
-    @IBOutlet weak var password: UITextField!
+    //@IBOutlet weak var password: UITextField!
     var customAuthenticationCompletion: AWSTaskCompletionSource<AWSCognitoIdentityCustomChallengeDetails>?
     var usernameText: String?
     var passwordlessViewController : PasswordlessViewController?
@@ -29,9 +29,9 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
         super.viewWillAppear(animated)
         //so we can hide keyboard
         self.username.delegate = self
-        self.password.delegate = self
+        //self.password.delegate = self
         
-        self.password.text = nil
+        //self.password.text = nil
         self.username.text = usernameText
         self.navigationController?.setNavigationBarHidden(true, animated: false)
     }
@@ -52,6 +52,18 @@ class SignInViewController: UIViewController, UITextFieldDelegate {
             alertController.addAction(retryAction)
         }
     }
+
+    func performSetConfirmationCode(code: String){
+        self.customAuthenticationCompletion?.set(result: AWSCognitoIdentityCustomChallengeDetails(challengeResponses: [
+            "ANSWER" : code,
+            "USERNAME" : self.username.text!
+            ]))
+        DispatchQueue.main.async {
+            self.passwordlessViewController?.dismiss(animated: true, completion: nil)
+            self.dismiss(animated: true, completion: nil)
+        }
+    }
+
 }
 
 extension SignInViewController: AWSCognitoIdentityCustomAuthentication {

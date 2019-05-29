@@ -16,7 +16,7 @@ class PasswordlessViewController: UIViewController {
     var customAuthenticationCompletion: AWSTaskCompletionSource<AWSCognitoIdentityCustomChallengeDetails>?
     var user: AWSCognitoIdentityUser?
     var username: String?
-    var signinViewController: UIViewController?
+    var signinViewController: SignInViewController?
     
     @IBOutlet weak var sentTo: UILabel!
     @IBOutlet weak var confirmationCode: UITextField!
@@ -45,18 +45,11 @@ class PasswordlessViewController: UIViewController {
             return
         }
 
-        performSetConfirmationCode(code: self.confirmationCode!.text!)
-    }
-    
-    func performSetConfirmationCode(code: String){
-        self.customAuthenticationCompletion?.set(result: AWSCognitoIdentityCustomChallengeDetails(challengeResponses: [
-            "ANSWER" : code,
-            "USERNAME" : self.username!
-            ]))
         DispatchQueue.main.async {
-            self.dismiss(animated: true, completion: nil)
-            self.signinViewController?.dismiss(animated: true, completion: nil)
+           self.dismiss(animated: true, completion: nil)
+           self.signinViewController?.dismiss(animated: true, completion: nil)
         }
+        self.signinViewController?.performSetConfirmationCode(code: self.confirmationCode!.text!)
     }
     
 }

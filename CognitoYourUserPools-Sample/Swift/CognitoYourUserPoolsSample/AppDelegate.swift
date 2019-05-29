@@ -74,7 +74,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             print("view " + view)
             print("token " + token)
             if view == "magic" {
-                self.signInViewController?.passwordlessViewController?.performSetConfirmationCode(code: token)
+                self.signInViewController?.performSetConfirmationCode(code: token)
             }
         }
         return true
