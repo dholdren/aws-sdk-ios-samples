@@ -50,6 +50,7 @@
 		964C91E1229589150080E7F2 /* PasswordlessViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordlessViewController.swift; sourceTree = "<group>"; };
 		AB8F26771F0FF8105FC402DD /* Pods_CognitoYourUserPoolsSample.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_CognitoYourUserPoolsSample.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DBEB9BB4F88788184F7DD583 /* Pods-CognitoYourUserPoolsSample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CognitoYourUserPoolsSample.debug.xcconfig"; path = "Pods/Target Support Files/Pods-CognitoYourUserPoolsSample/Pods-CognitoYourUserPoolsSample.debug.xcconfig"; sourceTree = "<group>"; };
+		F4E28FC522B17D810040D3F5 /* CognitoYourUserPoolsSample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CognitoYourUserPoolsSample.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -85,6 +86,7 @@
 		17FC2F7E1E258FC500174015 /* CognitoYourUserPoolsSample */ = {
 			isa = PBXGroup;
 			children = (
+				F4E28FC522B17D810040D3F5 /* CognitoYourUserPoolsSample.entitlements */,
 				17FC2F941E2590D800174015 /* MFAViewController.xib */,
 				964C91DF229587FD0080E7F2 /* PasswordlessViewController.xib */,
 				17FC2F7F1E258FC500174015 /* AppDelegate.swift */,
@@ -166,7 +168,14 @@
 				TargetAttributes = {
 					17FC2F7B1E258FC500174015 = {
 						CreatedOnToolsVersion = 7.3.1;
+						DevelopmentTeam = SNV26D26Y6;
 						LastSwiftMigration = 1020;
+						ProvisioningStyle = Manual;
+						SystemCapabilities = {
+							com.apple.SafariKeychain = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -401,10 +410,14 @@
 			baseConfigurationReference = DBEB9BB4F88788184F7DD583 /* Pods-CognitoYourUserPoolsSample.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = CognitoYourUserPoolsSample/CognitoYourUserPoolsSample.entitlements;
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = SNV26D26Y6;
 				INFOPLIST_FILE = CognitoYourUserPoolsSample/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.deanholdren.CognitoYourUserPoolsSample;
+				PRODUCT_BUNDLE_IDENTIFIER = com.casper.cognitosandbox;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "IoT Sandbox Profile";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -414,10 +427,14 @@
 			baseConfigurationReference = 2D8C9B52DE415302BA7B152A /* Pods-CognitoYourUserPoolsSample.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = CognitoYourUserPoolsSample/CognitoYourUserPoolsSample.entitlements;
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = CognitoYourUserPoolsSample/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.deanholdren.CognitoYourUserPoolsSample;
+				PRODUCT_BUNDLE_IDENTIFIER = com.casper.cognitosandbox;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;

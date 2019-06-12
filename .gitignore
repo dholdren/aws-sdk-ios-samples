@@ -34,3 +34,6 @@ AWS*.framework
 credentials.json
 Podfile.lock
 **/Pods
+
+#AppCode
+**/.idea/
