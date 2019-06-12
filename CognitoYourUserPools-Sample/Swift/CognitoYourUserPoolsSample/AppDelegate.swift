@@ -46,7 +46,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         // setup logging
         AWSDDLog.sharedInstance.logLevel = .verbose
-        
+
         // setup service configuration
         let serviceConfiguration = AWSServiceConfiguration(region: CognitoIdentityUserPoolRegion, credentialsProvider: nil)
         
@@ -64,22 +64,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
     
-    //com.CognitoTest://magic/<token>
-    func application(_ app: UIApplication, open url: URL,
-                     options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-        if let scheme = url.scheme,
-            scheme.localizedCaseInsensitiveCompare("com.CognitoTest") == .orderedSame,
-            let view = url.host {
-            let token = String(url.path.dropFirst()) //remove leading slash
-            print("view " + view)
-            print("token " + token)
-            if view == "magic" {
+    func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
+        if userActivity.activityType == NSUserActivityTypeBrowsingWeb {
+            print("Continue User Activity with URL: \(userActivity.webpageURL)")
+            if let url = userActivity.webpageURL,
+               url.path.starts(with: "/magic"),
+               url.pathComponents.count > 0,
+               let token = url.pathComponents.last {
                 self.signInViewController?.performSetConfirmationCode(code: token)
+                return true
             }
         }
-        return true
+        return false
     }
-    
+
     func applicationWillResignActive(_ application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
         // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
