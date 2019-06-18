@@ -29,5 +29,8 @@ let CognitoIdentityUserPoolAppClientId = customAuthOnlyAppClientId
 
 let CognitoIdentityUserPoolAppClientSecret = ""
 
-//the identity pool id?
 let AWSCognitoUserPoolsSignInProviderKey = "UserPool"
+
+//identity Pool:
+let CognitoIdentityPoolId = "us-east-2:018d6b1a-8e9a-45cc-8d3b-3b809aaef978"
+

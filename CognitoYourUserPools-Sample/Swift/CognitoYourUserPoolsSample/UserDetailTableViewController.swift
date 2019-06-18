@@ -18,16 +18,23 @@
 import Foundation
 import AWSCognitoIdentityProvider
 
-class UserDetailTableViewController : UITableViewController {
+class UserDetailTableViewController : UITableViewController, AWSIdentityProviderManager {
     
     var response: AWSCognitoIdentityUserGetDetailsResponse?
     var user: AWSCognitoIdentityUser?
     var pool: AWSCognitoIdentityUserPool?
+    var awsCognitoCredentialsProvider: AWSCognitoCredentialsProvider?
+    var identityId: String?
+    var sessionIdTokenString: String?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         self.tableView.delegate = self
         self.pool = AWSCognitoIdentityUserPool(forKey: AWSCognitoUserPoolsSignInProviderKey)
+        self.awsCognitoCredentialsProvider = AWSCognitoCredentialsProvider(regionType: .USEast2, identityPoolId: CognitoIdentityPoolId)
+        self.awsCognitoCredentialsProvider?.setIdentityProviderManagerOnce(self)
+        self.awsCognitoCredentialsProvider?.identityProvider.clear()
+        self.awsCognitoCredentialsProvider?.clearKeychain()
         if (self.user == nil) {
             self.user = self.pool?.currentUser()
         }
@@ -69,6 +76,7 @@ class UserDetailTableViewController : UITableViewController {
     
     @IBAction func signOut(_ sender: AnyObject) {
         self.user?.signOut()
+        self.pool?.clearLastKnownUser()
         self.title = nil
         self.response = nil
         self.tableView.reloadData()
@@ -77,6 +85,24 @@ class UserDetailTableViewController : UITableViewController {
     
     func refresh() {
         self.user?.getDetails().continueOnSuccessWith { (task) -> AnyObject? in
+            self.user?.getSession().continueWith(block: { (task) -> Any? in
+                if let session = task.result {
+                    self.sessionIdTokenString = session.idToken!.tokenString
+                } else {
+                    print(task.error)
+                }
+                return nil
+            })
+            //should get or create in identity pool
+            self.awsCognitoCredentialsProvider?.identityProvider.getIdentityId().continueWith(block: { (task) -> Any? in
+                if let identityId = task.result {
+                    print("successfully created/retrieved identity pool entry: \(identityId)")
+                    self.identityId = identityId as String
+                } else {
+                    print(task.error)
+                }
+                return nil
+            })
             DispatchQueue.main.async(execute: {
                 self.response = task.result
                 self.title = self.user?.username
@@ -84,6 +110,14 @@ class UserDetailTableViewController : UITableViewController {
             })
             return nil
         }
+    }
+
+    //match expected signature of `self.awsCognitoCredentialsProvider?.setIdentityProviderManagerOnce(self)`
+    public func logins() -> AWSTask<NSDictionary> {
+        let dict = NSMutableDictionary.init()
+        dict[self.pool?.identityProviderName] = self.sessionIdTokenString
+        let task = AWSTask.init(result: dict as NSDictionary)
+        return task
     }
     
 }
