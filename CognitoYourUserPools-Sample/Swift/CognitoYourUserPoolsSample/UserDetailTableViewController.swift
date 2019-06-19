@@ -20,16 +20,22 @@ import AWSCognitoIdentityProvider
 
 class UserDetailTableViewController : UITableViewController, AWSIdentityProviderManager {
     
+    @IBOutlet weak var currentTempLabel: UILabel!
+    @IBOutlet weak var textField: UITextField!
+    @IBOutlet weak var slider: UISlider!
     var response: AWSCognitoIdentityUserGetDetailsResponse?
     var user: AWSCognitoIdentityUser?
     var pool: AWSCognitoIdentityUserPool?
     var awsCognitoCredentialsProvider: AWSCognitoCredentialsProvider?
     var identityId: String?
     var sessionIdTokenString: String?
+    var thingName: String?
+    var targetTemp: Float?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         self.tableView.delegate = self
+        
         self.pool = AWSCognitoIdentityUserPool(forKey: AWSCognitoUserPoolsSignInProviderKey)
         self.awsCognitoCredentialsProvider = AWSCognitoCredentialsProvider(regionType: .USEast2, identityPoolId: CognitoIdentityPoolId)
         self.awsCognitoCredentialsProvider?.setIdentityProviderManagerOnce(self)
@@ -41,6 +47,30 @@ class UserDetailTableViewController : UITableViewController, AWSIdentityProvider
         self.refresh()
     }
     
+    @IBAction func setTargetTemp(_ sender: Any) {
+        updateDeviceShadow(targetTemp: Float(self.textField.text!)!)
+    }
+    
+
+    @IBAction func textFieldChanged(_ sender: Any) {
+        //print("text field changed: \(self.textField.text!)")
+        let localTargetTemp = Float(self.textField.text!)
+        
+        if (localTargetTemp != nil) {
+            self.targetTemp = localTargetTemp
+            slider.value = self.targetTemp!
+        } else {
+            //change it back, must have entered a non-float
+            textField.text = String(slider.value)
+        }
+    }
+
+    @IBAction func sliderValueChanged(_ sender: Any) {
+        //print("slider changed: =\(slider.value)")
+        self.targetTemp = slider.value
+        textField.text = String(self.targetTemp!)
+    }
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         self.navigationController?.setToolbarHidden(true, animated: true)
@@ -103,10 +133,16 @@ class UserDetailTableViewController : UITableViewController, AWSIdentityProvider
                 }
                 return nil
             })
+            let deviceShadow: [String : Any] = self.getDeviceShadow()
+            self.targetTemp = deviceShadow["targetTemp"] as! Float
+            self.slider.value = self.targetTemp!
+            self.textField.text = String(self.targetTemp!)
+            
             DispatchQueue.main.async(execute: {
                 self.response = task.result
                 self.title = self.user?.username
                 self.tableView.reloadData()
+                self.currentTempLabel.text = "Current Temp: \(deviceShadow["currentTemp"] as! Float), Target Temp: \(deviceShadow["targetTemp"] as! Float)"
             })
             return nil
         }
@@ -119,6 +155,20 @@ class UserDetailTableViewController : UITableViewController, AWSIdentityProvider
         let task = AWSTask.init(result: dict as NSDictionary)
         return task
     }
+
+    //retrieve things associated with this user from our
+    //pairing service (mock for now)
+    func getThings() -> [String] {
+        return ["esp32_devkitc_dean1"]
+    }
+
+    func updateDeviceShadow(targetTemp: Float) {
+        print("mocking updateDeviceShadown, targetTemp: \(targetTemp)")
+    }
     
+    func getDeviceShadow() -> [String : Any] {
+        return ["currentTemp" : 75.0 as Float, "targetTemp" : 80.0 as Float]
+    }
+
 }
 
