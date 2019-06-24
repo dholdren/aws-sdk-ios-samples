@@ -34,3 +34,8 @@ let AWSCognitoUserPoolsSignInProviderKey = "UserPool"
 //identity Pool:
 let CognitoIdentityPoolId = "us-east-2:018d6b1a-8e9a-45cc-8d3b-3b809aaef978"
 
+//device shadow and telemetry
+let PolicyName = "esp32_devkitc_dean1_amazon_freertos_policy"
+let IOT_ENDPOINT = "https://a2wysv1o16206a-ats.iot.us-east-2.amazonaws.com"
+let ASWIoTDataManagerKey = "CasperIotDataManager"
+

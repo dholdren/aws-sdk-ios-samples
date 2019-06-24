@@ -17,6 +17,7 @@
 
 import Foundation
 import AWSCognitoIdentityProvider
+import AWSIoT
 
 class UserDetailTableViewController : UITableViewController, AWSIdentityProviderManager {
     
@@ -31,6 +32,13 @@ class UserDetailTableViewController : UITableViewController, AWSIdentityProvider
     var sessionIdTokenString: String?
     var thingName: String?
     var targetTemp: Float?
+    var currentTemp: Float?
+    
+
+    @objc var iotDataManager: AWSIoTDataManager!
+    @objc var iotManager: AWSIoTManager!
+    @objc var iot: AWSIoT!
+    @objc var connected = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -41,14 +49,77 @@ class UserDetailTableViewController : UITableViewController, AWSIdentityProvider
         self.awsCognitoCredentialsProvider?.setIdentityProviderManagerOnce(self)
         self.awsCognitoCredentialsProvider?.identityProvider.clear()
         self.awsCognitoCredentialsProvider?.clearKeychain()
+
+
+        // Init IOT
+        let iotEndPoint = AWSEndpoint(urlString: IOT_ENDPOINT)
+
+        // Configuration for AWSIoT control plane APIs
+        let iotConfiguration = AWSServiceConfiguration(region: .USEast2, credentialsProvider: self.awsCognitoCredentialsProvider)
+
+        // Configuration for AWSIoT data plane APIs
+        let iotDataConfiguration = AWSServiceConfiguration(region: .USEast2,
+                endpoint: iotEndPoint,
+                credentialsProvider: self.awsCognitoCredentialsProvider)
+        AWSServiceManager.default().defaultServiceConfiguration = iotConfiguration
+
+        self.iotManager = AWSIoTManager.default()
+        self.iot = AWSIoT.default()
+
+        AWSIoTDataManager.register(with: iotDataConfiguration!, forKey: ASWIoTDataManagerKey)
+        self.iotDataManager = AWSIoTDataManager(forKey: ASWIoTDataManagerKey)
+
+        let uuid = UUID().uuidString;
+
         if (self.user == nil) {
             self.user = self.pool?.currentUser()
         }
         self.refresh()
     }
-    
+
+    func mqttEventCallback( _ status: AWSIoTMQTTStatus )
+    {
+        DispatchQueue.main.async {
+            print("connection status = \(status.rawValue)")
+            switch(status)
+            {
+            case .connecting:
+                print( "Connecting" )
+
+            case .connected:
+                print( "Connected" )
+                let uuid = UUID().uuidString;
+                //let defaults = UserDefaults.standard
+                //let certificateId = defaults.string( forKey: "certificateId")
+                self.connected = true
+
+            case .disconnected:
+                print( "Disconnected" )
+                self.connected = false
+
+            case .connectionRefused:
+                print( "Connection Refused" )
+                self.connected = false
+
+            case .connectionError:
+                print( "Connection Error" )
+                self.connected = false
+
+            case .protocolError:
+                print( "Protocol Error" )
+                self.connected = false
+
+            default:
+                print("unknown state: \(status.rawValue)")
+                self.connected = false
+            }
+        }
+    }
+
+
     @IBAction func setTargetTemp(_ sender: Any) {
-        updateDeviceShadow(targetTemp: Float(self.textField.text!)!)
+        let deviceName = getThings()[0]
+        updateDeviceShadow(name: deviceName, targetTemp: Float(self.textField.text!)!)
     }
     
 
@@ -123,7 +194,7 @@ class UserDetailTableViewController : UITableViewController, AWSIdentityProvider
                 }
                 return nil
             })
-            //should get or create in identity pool
+            //should get or create ID in identity pool
             self.awsCognitoCredentialsProvider?.identityProvider.getIdentityId().continueWith(block: { (task) -> Any? in
                 if let identityId = task.result {
                     print("successfully created/retrieved identity pool entry: \(identityId)")
@@ -133,18 +204,65 @@ class UserDetailTableViewController : UITableViewController, AWSIdentityProvider
                 }
                 return nil
             })
-            let deviceShadow: [String : Any] = self.getDeviceShadow()
-            self.targetTemp = deviceShadow["targetTemp"] as! Float
-            self.slider.value = self.targetTemp!
-            self.textField.text = String(self.targetTemp!)
-            
+            //attach the IOT policy to the identity
+            //TODO: make a new "Pairing" service and do this during that operation.
+            //don't give the user attachpolicy provisions
+            self.attachPrincipalPolicy()
             DispatchQueue.main.async(execute: {
                 self.response = task.result
                 self.title = self.user?.username
                 self.tableView.reloadData()
-                self.currentTempLabel.text = "Current Temp: \(deviceShadow["currentTemp"] as! Float), Target Temp: \(deviceShadow["targetTemp"] as! Float)"
             })
+
+            //device shadow setup
+            let uuid = UUID().uuidString;
+            self.iotDataManager.connectUsingWebSocket(withClientId: uuid, cleanSession: true, statusCallback: { ( _ status: AWSIoTMQTTStatus ) -> Void in
+                    if status == .connected {
+                        print( "Connected" )
+                        for thingName in self.getThings() {
+                            print("registering the device shadow for: \(thingName)")
+                            self.iotDataManager.register(withShadow: thingName, options: ["enableDebugging" : true], eventCallback: self.deviceShadowCallback)
+                            DispatchQueue.main.async(execute: {
+                                self.iotDataManager.getShadow(thingName, clientToken: uuid) //should call registered callback
+                            })
+                        }
+                    } else {
+                        print("Not connected, \(status.rawValue)")
+                    }
+                }
+            )
+            
             return nil
+        }
+    }
+
+    func attachPrincipalPolicy() {
+
+        // get the AWS Cognito Identity
+
+        self.awsCognitoCredentialsProvider?.identityProvider.getIdentityId().continueWith { task -> Any? in
+
+            if let error = task.error {
+                print(error.localizedDescription)
+                return task
+            }
+
+            guard let attachPrincipalPolicyRequest = AWSIoTAttachPrincipalPolicyRequest(), let principal = task.result else {
+                return task
+            }
+
+            // The AWS IoT Policy
+            attachPrincipalPolicyRequest.policyName = PolicyName
+            // The AWS Cognito Identity
+            attachPrincipalPolicyRequest.principal = String(principal)
+
+            AWSIoT.default().attachPrincipalPolicy(attachPrincipalPolicyRequest, completionHandler: { error in
+                if let error = error {
+                    print(error.localizedDescription)
+                }
+            })
+
+            return task
         }
     }
 
@@ -162,13 +280,85 @@ class UserDetailTableViewController : UITableViewController, AWSIdentityProvider
         return ["esp32_devkitc_dean1"]
     }
 
-    func updateDeviceShadow(targetTemp: Float) {
-        print("mocking updateDeviceShadown, targetTemp: \(targetTemp)")
+    func updateDeviceShadow(name: String, targetTemp: Float) {
+        print("setting updateDeviceShadown, targetTemp: \(targetTemp)")
+        let json = deviceShadowJsonString(targetTemp: targetTemp)
+        self.iotDataManager.updateShadow(name, jsonString: json)
     }
     
-    func getDeviceShadow() -> [String : Any] {
-        return ["currentTemp" : 75.0 as Float, "targetTemp" : 80.0 as Float]
+    // operation: 0 = Update, 1 = Get, 2 = Delete
+    // status: 0 = Accepted, 1 = Rejected, 2 = Delta, 3 = Documents, 5 = ForeignUpdate, 6 = Timeout
+    func deviceShadowCallback(name: String, operation: AWSIoTShadowOperationType, status: AWSIoTShadowOperationStatusType, clientToken: String, payload: Data) {
+        let payloadStringValue = NSString(data: payload, encoding: String.Encoding.utf8.rawValue)!
+        
+        print("in device Shadow Callback")
+        print("********************************")
+        print(name)
+        print(operation.rawValue)
+        print(status.rawValue)
+        print(clientToken)
+        print(payloadStringValue)
+        print("********************************")
+        
+        let currentTemp: NSNumber?
+        let targetTemp: NSNumber?
+        do {
+            let jsonPayload = try JSONSerialization.jsonObject(with:
+                payload, options: [])
+            let jsonRoot = jsonPayload as! [String: Any]
+            var shouldUpdateView = false
+            
+            if (operation == .update || operation == .get) {
+                if (status == .accepted) {
+                    let jsonState = jsonRoot["state"] as! [String: Any]
+                    let jsonDesired = jsonState["desired"] as! [String: Any]?
+                    let jsonReported = jsonState["reported"] as! [String: Any]?
+                    let jsonObj = (jsonReported ?? jsonDesired)!
+                    targetTemp = jsonObj["target_temp"] as! NSNumber?
+                    currentTemp = jsonObj["current_temp"] as! NSNumber?
+                    
+                    updateTempValues(targetTemp: targetTemp, currentTemp: currentTemp)
+                } else if (status == .delta) {
+                    let jsonState = jsonRoot["state"] as! [String: Any]
+                    targetTemp = jsonState["target_temp"] as! NSNumber?
+                    currentTemp = jsonState["current_temp"] as! NSNumber?
+                    
+                    updateTempValues(targetTemp: targetTemp, currentTemp: currentTemp)
+                } else if (status == .documents) {
+                    let jsonCurrent = jsonRoot["current"] as! [String: Any]
+                    let jsonState = jsonCurrent["state"] as! [String: Any]
+                    let jsonDesired = jsonState["desired"] as! [String: Any]?
+                    let jsonReported = jsonState["reported"] as! [String: Any]?
+                    let jsonObj = (jsonReported ?? jsonDesired)!
+                    targetTemp = jsonObj["target_temp"] as! NSNumber?
+                    currentTemp = jsonObj["current_temp"] as! NSNumber?
+                    
+                    updateTempValues(targetTemp: targetTemp, currentTemp: currentTemp)
+                }
+            }
+        } catch let parsingError {
+            print("Error", parsingError)
+        }
     }
-
+    
+    func deviceShadowJsonString(targetTemp: Float) -> String {
+        return "{\"state\" : {\"desired\": {\"target_temp\": \(String(targetTemp)) }}}"
+    }
+    
+    func updateTempValues(targetTemp: NSNumber?, currentTemp: NSNumber?) -> Void {
+        if let targetTemp = targetTemp {
+            self.targetTemp = targetTemp.floatValue
+            self.currentTemp = currentTemp?.floatValue ?? self.currentTemp
+            
+            DispatchQueue.main.async(execute: {
+                
+                self.slider.value = self.targetTemp!
+                self.textField.text = String(self.targetTemp!)
+                self.currentTempLabel.text = "Current Temp: \(self.currentTemp ?? 0.0), Target Temp: \(self.targetTemp ?? 0.0)"
+            })
+        } else {
+            print("missing targetTemp in JSON")
+        }
+    }
 }
 
