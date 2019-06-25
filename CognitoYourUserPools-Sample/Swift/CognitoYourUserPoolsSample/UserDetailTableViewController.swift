@@ -69,77 +69,37 @@ class UserDetailTableViewController : UITableViewController, AWSIdentityProvider
         AWSIoTDataManager.register(with: iotDataConfiguration!, forKey: ASWIoTDataManagerKey)
         self.iotDataManager = AWSIoTDataManager(forKey: ASWIoTDataManagerKey)
 
-        let uuid = UUID().uuidString;
-
         if (self.user == nil) {
             self.user = self.pool?.currentUser()
         }
         self.refresh()
     }
 
-    func mqttEventCallback( _ status: AWSIoTMQTTStatus )
-    {
-        DispatchQueue.main.async {
-            print("connection status = \(status.rawValue)")
-            switch(status)
-            {
-            case .connecting:
-                print( "Connecting" )
-
-            case .connected:
-                print( "Connected" )
-                let uuid = UUID().uuidString;
-                //let defaults = UserDefaults.standard
-                //let certificateId = defaults.string( forKey: "certificateId")
-                self.connected = true
-
-            case .disconnected:
-                print( "Disconnected" )
-                self.connected = false
-
-            case .connectionRefused:
-                print( "Connection Refused" )
-                self.connected = false
-
-            case .connectionError:
-                print( "Connection Error" )
-                self.connected = false
-
-            case .protocolError:
-                print( "Protocol Error" )
-                self.connected = false
-
-            default:
-                print("unknown state: \(status.rawValue)")
-                self.connected = false
-            }
-        }
-    }
-
-
     @IBAction func setTargetTemp(_ sender: Any) {
         let deviceName = getThings()[0]
-        updateDeviceShadow(name: deviceName, targetTemp: Float(self.textField.text!)!)
+        updateDeviceShadow(name: deviceName, targetTemp: self.slider.value.rounded())
     }
     
 
     @IBAction func textFieldChanged(_ sender: Any) {
         //print("text field changed: \(self.textField.text!)")
-        let localTargetTemp = Float(self.textField.text!)
+        let localTargetTemp = Float(self.textField.text!)?.rounded()
         
         if (localTargetTemp != nil) {
             self.targetTemp = localTargetTemp
+            self.textField.text = String(self.targetTemp!) //in case it was rounded
             slider.value = self.targetTemp!
         } else {
-            //change it back, must have entered a non-float
-            textField.text = String(slider.value)
+            //change it back, must have entered a non-number
+            textField.text = String(Int(slider.value))
         }
     }
 
     @IBAction func sliderValueChanged(_ sender: Any) {
         //print("slider changed: =\(slider.value)")
-        self.targetTemp = slider.value
-        textField.text = String(self.targetTemp!)
+        let localTargetTemp = self.slider.value.rounded()
+        self.targetTemp = localTargetTemp
+        textField.text = String(Int(self.targetTemp!))
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -222,9 +182,7 @@ class UserDetailTableViewController : UITableViewController, AWSIdentityProvider
                         for thingName in self.getThings() {
                             print("registering the device shadow for: \(thingName)")
                             self.iotDataManager.register(withShadow: thingName, options: ["enableDebugging" : true], eventCallback: self.deviceShadowCallback)
-                            DispatchQueue.main.async(execute: {
-                                self.iotDataManager.getShadow(thingName, clientToken: uuid) //should call registered callback
-                            })
+                            self.iotDataManager.getShadow(thingName, clientToken: uuid) //should call registered callback
                         }
                     } else {
                         print("Not connected, \(status.rawValue)")
