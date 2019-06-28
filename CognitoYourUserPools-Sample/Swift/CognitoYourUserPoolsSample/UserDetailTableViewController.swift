@@ -182,7 +182,9 @@ class UserDetailTableViewController : UITableViewController, AWSIdentityProvider
                         for thingName in self.getThings() {
                             print("registering the device shadow for: \(thingName)")
                             self.iotDataManager.register(withShadow: thingName, options: ["enableDebugging" : true], eventCallback: self.deviceShadowCallback)
-                            self.iotDataManager.getShadow(thingName, clientToken: uuid) //should call registered callback
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                self.iotDataManager.getShadow(thingName, clientToken: uuid) //should call registered callback
+                            }
                         }
                     } else {
                         print("Not connected, \(status.rawValue)")
@@ -261,12 +263,11 @@ class UserDetailTableViewController : UITableViewController, AWSIdentityProvider
         let currentTemp: NSNumber?
         let targetTemp: NSNumber?
         do {
-            let jsonPayload = try JSONSerialization.jsonObject(with:
-                payload, options: [])
-            let jsonRoot = jsonPayload as! [String: Any]
-            var shouldUpdateView = false
-            
-            if (operation == .update || operation == .get) {
+            if (operation == .update || operation == .get) && (status != .timeout) {
+                let jsonPayload = try JSONSerialization.jsonObject(with:
+                    payload, options: [])
+                let jsonRoot = jsonPayload as! [String: Any]
+                
                 if (status == .accepted) {
                     let jsonState = jsonRoot["state"] as! [String: Any]
                     let jsonDesired = jsonState["desired"] as! [String: Any]?
